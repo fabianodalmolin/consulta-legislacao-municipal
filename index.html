@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top">
+  <!-- Importando a fonte Inter do Google Fonts -->
+  <link href="https://googleapis.com" rel="stylesheet">
+
+<style>
+   :root {
+    --azul-petroleo: #0F3D42;    /* Nova cor: Azul Petróleo Escuro */
+    --azul-escuro: #0A292C;      /* Tom mais fechado para efeito de hover */
+    --cinza-fundo: #F2F7F7;      /* Fundo suave frio */
+    --cinza-borda: #D1E1E2;      /* Divisores discretos */
+    --texto-escuro: #1A2E30;     /* Texto principal coordenado */
+    --link-azul: #0E9F6E;        /* Verde Esmeralda para links */
+  }
+
+  body { 
+  font-family: 'Inter', sans-serif; /* <-- Trocado de Arial para Inter */
+  margin: 0; 
+  padding: 0;
+  background-color: #ffffff;
+  color: var(--texto-escuro);
+  line-height: 1.6;
+}
+
+
+    /* Barra de topo atualizada para suportar a logo alinhada à direita */
+    .topo-institucional {
+      background-color: var(--azul-petroleo);
+      color: #ffffff;
+      padding: 8px 20px;
+      /* Reduzido levemente para equilibrar com a logo */
+      font-size: 14px;
+      font-weight: bold;
+      letter-spacing: 1px;
+
+      /* Flexbox para colocar o texto na esquerda e a logo na direita */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Controle do tamanho e proporção da logo */
+    .logo-topo {
+      height: 35px;
+      /* Ajuste a altura conforme o design da sua logo */
+      width: auto;
+      display: block;
+    }
+
+    /* Container do conteúdo principal */
+    .container {
+      max-width: 650px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    h3 {
+      color: var(--azul-petroleo);
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 25px;
+      border-bottom: 3px solid var(--azul-petroleo);
+      padding-bottom: 8px;
+    }
+
+    .campo-grupo {
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+      color: var(--texto-escuro);
+    }
+
+    select {
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      border: 1px solid var(--cinza-borda);
+      border-radius: 4px;
+      font-size: 15px;
+      background-color: #ffffff;
+    }
+
+    select:focus {
+      border-color: var(--azul-petroleo);
+      outline: none;
+    }
+
+    /* Container de respostas estilizado */
+    .resultado-container {
+      margin-top: 30px;
+    }
+
+    .status-mensagem {
+      font-weight: bold;
+      color: var(--azul-petroleo);
+      animation: piscar 1.5s infinite;
+    }
+
+    @keyframes piscar {
+      0% {
+        opacity: 0.5;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Blocos organizados de resultado */
+    .bloco-resultado {
+      background-color: var(--cinza-fundo);
+      border-left: 4px solid var(--azul-petroleo);
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 0 4px 4px 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .linha-resultado {
+      margin-bottom: 6px;
+    }
+
+    .linha-resultado:last-child {
+      margin-bottom: 0;
+    }
+
+    .destaque {
+      font-weight: bold;
+      color: var(--azul-petroleo);
+    }
+
+    /* Links clicáveis em alta visibilidade */
+    .link-clicavel {
+      color: var(--link-azul);
+      text-decoration: underline;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .link-clicavel:hover {
+      color: var(--azul-escuro);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Faixa --azul-petroleo -->
+  <div class="topo-institucional">
+    <span>SISTEMA CONSULTA LEGISLAÇÃO MUNICIPAL</span>
+
+  </div>
+
+  <div class="container">
+    <h3>Consulta Legislação Municipal</h3>
+
+    <div class="campo-grupo">
+      <label for="meuMunicipio">Município:</label>
+      <select id="meuMunicipio" onchange="verificarEChamar()" disabled>
+          <option value="">Carregando...</option>
+        </select>
+    </div>
+
+    <div class="campo-grupo">
+      <label for="meuCodigo">Cód. Serviço:</label>
+      <select id="meuCodigo" onchange="verificarEChamar()" disabled>
+          <option value="">Carregando...</option>
+        </select>
+    </div>
+
+    <div id="resposta" class="resultado-container"></div>
+  </div>
+
+  <script>
+    window.onload = function() {
+        google.script.run
+          .withSuccessHandler(function(listas) {
+            var selectMuni = document.getElementById('meuMunicipio');
+            var selectCod = document.getElementById('meuCodigo');
+            
+            selectMuni.innerHTML = '<option value="">-- Selecione o Município --</option>';
+            listas.municipios.forEach(function(muni) {
+              selectMuni.innerHTML += '<option value="' + muni + '">' + muni + '</option>';
+            });
+            
+            selectCod.innerHTML = '<option value="">-- Selecione o Código --</option>';
+            listas.codigos.forEach(function(cod) {
+              selectCod.innerHTML += '<option value="' + cod + '">' + cod + '</option>';
+            });
+            
+            selectMuni.disabled = false;
+            selectCod.disabled = false;
+          })
+          .withFailureHandler(function(err) {
+            alert("Erro ao carregar listas da planilha: " + err.message);
+          })
+          .obterListasFiscais();
+      };
+
+      function formatarLinhaComLink(titulo, texto, url) {
+        if (url) {
+          return "<div class='linha-resultado'><span class='destaque'>" + titulo + ":</span> <a class='link-clicavel' href='" + url + "' target='_blank'>" + texto + "</a></div>";
+        } else {
+          return "<div class='linha-resultado'><span class='destaque'>" + titulo + ":</span> " + texto + "</div>";
+        }
+      }
+
+      function verificarEChamar() {
+        var muni = document.getElementById('meuMunicipio').value;
+        var cod = document.getElementById('meuCodigo').value;
+        var divResposta = document.getElementById('resposta');
+        
+        if (muni === "" || cod === "") {
+          divResposta.innerHTML = "";
+          return;
+        }
+        
+        divResposta.innerHTML = "<p class='status-mensagem'>Calculando regras fiscais...</p>";
+        
+        google.script.run
+          .withSuccessHandler(function(res) {
+            divResposta.innerHTML = "";
+            
+            var htmlGerado = "";
+            
+            // Bloco 1: Informações Gerais da Alíquota
+            htmlGerado += "<div class='bloco-resultado'>";
+            // htmlGerado += "  <div class='linha-resultado'><span class='destaque'>Alíquota:</span> " + res.c4 + " % " + res.d4 + "</div>";
+            // htmlGerado += "  <div class='linha-resultado'>" + res.b5 + "</div>";
+            // htmlGerado += "</div>";
+            htmlGerado += "  <div class='linha-resultado'><span class='destaque'>Alíquota:</span> " + res.c4 + " % " + res.d4 + " - " + res.d3 + "</div>";
+            htmlGerado += "  <div class='linha-resultado'>" + res.b5 + "</div>";
+            htmlGerado += "</div>";
+
+
+            
+// Bloco 2: Detalhamento de Regras (Oculta linhas sem respostas válidas)
+var temAlgumaRegra = false;
+var subHtmlGerado = "";
+
+// Função auxiliar para validar se o texto é limpo e útil
+function temTextoValido(valor) {
+  if (!valor) return false;
+  var limpo = String(valor).trim();
+  return limpo !== "" && limpo !== "0" && limpo !== "-" && limpo.length > 1;
+}
+
+if (temTextoValido(res.b7) && temTextoValido(res.d7)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b7 + ":</span> " + res.d7 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b8) && temTextoValido(res.d8)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b8 + ":</span> " + res.d8 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b9) && temTextoValido(res.d9)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b9 + ":</span> " + res.d9 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b10) && temTextoValido(res.d10)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b10 + ":</span> " + res.d10 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b11) && temTextoValido(res.d11)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b11 + ":</span> " + res.d11 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b12) && temTextoValido(res.d12)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b12 + ":</span> " + res.d12 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b13) && temTextoValido(res.d13)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b13 + ":</span> " + res.d13 + "</div>";
+  temAlgumaRegra = true;
+}
+if (temTextoValido(res.b14) && temTextoValido(res.d14)) {
+  subHtmlGerado += "  <div class='linha-resultado'><span class='destaque'>" + res.b14 + ":</span> " + res.d14 + "</div>";
+  temAlgumaRegra = true;
+}
+
+// Só desenha o container do bloco na tela se ele tiver pelo menos uma linha válida
+if (temAlgumaRegra) {
+  htmlGerado += "<div class='bloco-resultado'>" + subHtmlGerado + "</div>";
+}
+
+
+            
+            // Bloco 3: Fontes e Hiperlinks (Linhas 16 a 21)
+            htmlGerado += "<div class='bloco-resultado'>";
+            htmlGerado += "  <div style='font-weight:bold; margin-bottom:10px; border-bottom:1px solid var(--cinza-borda); padding-bottom:4px;'>Legislação e Fontes de Consulta:</div>";
+            htmlGerado +=   formatarLinhaComLink(res.b16, res.d16, res.linkD16);
+            htmlGerado +=   formatarLinhaComLink(res.b17, res.d17, res.linkD17);
+            htmlGerado +=   formatarLinhaComLink(res.b18, res.d18, res.linkD18);
+            htmlGerado +=   formatarLinhaComLink(res.b19, res.d19, res.linkD19);
+            htmlGerado +=   formatarLinhaComLink(res.b20, res.d20, res.linkD20);
+            htmlGerado +=   formatarLinhaComLink(res.b21, res.d21, res.linkD21);
+            htmlGerado += "</div>";
+            
+            divResposta.innerHTML = htmlGerado;
+          })
+          .withFailureHandler(function(err) {
+            divResposta.innerHTML = "<p style='color: red; font-weight: bold;'>Erro ao simular: " + err.message + "</p>";
+          })
+          .processarSimulacao(muni, cod);
+      }
+  </script>
+
+</body>
+
+</html>
